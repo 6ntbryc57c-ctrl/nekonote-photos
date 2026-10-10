@@ -1,11 +1,14 @@
 # ねこのて：YouTube の最新の曲（長尺だけ）を調べて latest.json に書き出す（2026-10-10 Claude 作成）
 # ホームページの「＊お知らせ＊」がこの latest.json を読む。
+# あわせて top/ と season/ の写真の一覧 photos.json も作る（月ごとに 10.jpg・10-1.jpg… からランダムに選ぶため）。
 # やめるとき：このファイルを消すか、GitHub の「Actions」で無効にする。
 name: latest-songs
 on:
   schedule:
     - cron: "17 * * * *"   # 1時間ごと（17分）
   workflow_dispatch:       # 手で動かすこともできる
+  push:                    # 写真を入れたらすぐ一覧を作り直す
+    paths: ["top/**", "season/**"]
 permissions:
   contents: write
 jobs:
@@ -50,10 +53,20 @@ jobs:
               open("latest.json", "w", encoding="utf-8").write(new)
           print(new)
           PY
+      - name: list photos
+        run: |
+          python3 - <<'PY'
+          import json, os
+          d = {k: sorted(f for f in os.listdir(k) if f.lower().endswith('.jpg')) if os.path.isdir(k) else [] for k in ('top', 'season')}
+          new = json.dumps(d, ensure_ascii=False, indent=1)
+          old = open('photos.json', encoding='utf-8').read() if os.path.exists('photos.json') else ''
+          if new != old:
+              open('photos.json', 'w', encoding='utf-8').write(new)
+          print(new)
+          PY
       - name: save if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ ! -f latest.json ]; then echo "no latest.json yet"; exit 0; fi
-          git add latest.json
+          for f in latest.json photos.json; do [ -f "$f" ] && git add "$f"; done
           if git diff --cached --quiet; then echo "no change"; else git commit -m "update latest songs" && git push; fi
