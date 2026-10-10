@@ -1,0 +1,59 @@
+# ねこのて：YouTube の最新の曲（長尺だけ）を調べて latest.json に書き出す（2026-10-10 Claude 作成）
+# ホームページの「＊お知らせ＊」がこの latest.json を読む。
+# やめるとき：このファイルを消すか、GitHub の「Actions」で無効にする。
+name: latest-songs
+on:
+  schedule:
+    - cron: "17 * * * *"   # 1時間ごと（17分）
+  workflow_dispatch:       # 手で動かすこともできる
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: read youtube rss
+        run: |
+          python3 - <<'PY'
+          import json, os, time, datetime, urllib.request, xml.etree.ElementTree as ET
+          # YouTube の RSS はときどき 404・500 を返すので、少し待って最大5回やり直す。読めなければ前の latest.json を残す
+          url = "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFlGZFACjIFNJRD-CdhKiqjQ"
+          x = None
+          for i in range(5):
+              try:
+                  req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                  x = urllib.request.urlopen(req, timeout=30).read()
+                  if b"<entry>" in x:
+                      break
+              except Exception as e:
+                  print("try", i + 1, "failed:", e)
+              x = None
+              time.sleep(20)
+          if x is None:
+              print("could not read rss; keep the old latest.json")
+              raise SystemExit(0)
+          ns = {"a": "http://www.w3.org/2005/Atom", "yt": "http://www.youtube.com/xml/schemas/2015"}
+          root = ET.fromstring(x)
+          items = []
+          for e in root.findall("a:entry", ns)[:5]:
+              items.append({"title": e.find("a:title", ns).text,
+                            "id": e.find("yt:videoId", ns).text,
+                            "published": e.find("a:published", ns).text})
+          if not items:
+              raise SystemExit("no entries")
+          jst = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
+          data = {"checked": jst.strftime("%Y-%m-%d"), "items": items}
+          new = json.dumps(data, ensure_ascii=False, indent=1)
+          old = open("latest.json", encoding="utf-8").read() if os.path.exists("latest.json") else ""
+          if new != old:
+              open("latest.json", "w", encoding="utf-8").write(new)
+          print(new)
+          PY
+      - name: save if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ ! -f latest.json ]; then echo "no latest.json yet"; exit 0; fi
+          git add latest.json
+          if git diff --cached --quiet; then echo "no change"; else git commit -m "update latest songs" && git push; fi
