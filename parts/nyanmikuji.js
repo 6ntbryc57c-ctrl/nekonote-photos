@@ -1,4 +1,4 @@
-/* ねこのて「今日のおみくじニャンコ」演出 v1（2026-10-11）
+/* ねこのて「今日のおみくじニャンコ」演出 v2（2026-10-11：ラッキーナンバーとグッズへのリンクを追加）
    使い方: NyanMikuji.play({fortune:'大吉', doc:parent.document, done:function(no){…}})
    絵は langue de chat のイラスト（parts/nyanko/NN.webp）。どの動きもゆっくり・控えめにする（ユーザー指示）。
    やめ方: 中の部品で NyanMikuji を呼ばなければ、今までどおりすぐ結果が出る。 */
@@ -6,6 +6,15 @@
 var BASE='https://raw.githubusercontent.com/6ntbryc57c-ctrl/nekonote-photos/main/parts/nyanko/';
 var NOS=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,27,28,29,30,31,32,33,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53];
 var SHOP='https://suzuri.jp/langue-de-chat';
+// 絵の番号＝SUZURI の「langue de chat◯」の番号（2026-10-11 に51枚すべて絵を見比べて確認）。値はそのデザインのページの番号
+var IDS=[19635531,19635771,19636768,19636894,19641447,19641641,19641656,19641678,19641695,19641738,19641777,19645513,19646112,19646145,19646374,19652534,19674253,19683976,19702742,19791605,19791618,19791628,19791650,19791694,19706862,19724497,19724646,19724688,19724755,19724814,19728062,19728112,19791738,19746054,19746241,19791755,19752636,19752760,19752845,19746096,19746123,19746159,19746198,19747976,19771697,19771725,19752875,19770198,19771759,19791375,19746270];
+var KEY='nekonote_nyanko';
+function today(){var j=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));return j.getFullYear()+'-'+(j.getMonth()+1)+'-'+j.getDate()}
+// 結果の枠に「今日のニャンコ：ラッキーナンバー◯番」とグッズへのリンクを足す（その日に引いた番号があるときだけ）
+function lucky(mk){try{var v=(localStorage.getItem(KEY)||'').split('|');if(v[0]!==today()||!mk||mk.querySelector('.ny-lk'))return;var no=+v[1],i=NOS.indexOf(no);if(i<0)return;
+ var d=mk.ownerDocument.createElement('div');d.className='ny-lk';d.style.marginTop='2px';
+ d.innerHTML='今日のニャンコ：ラッキーナンバー<b style="color:#f5c542;font-size:1.15em">'+no+'</b>番 <a href="'+SHOP+'/designs/'+IDS[i]+'" target="_blank" rel="noopener">この子のグッズ🐾</a>';
+ var sm=mk.querySelector('.sm');sm?mk.insertBefore(d,sm):mk.appendChild(d)}catch(e){}}
 var EASE='cubic-bezier(.33,.1,.25,1)';
 var CSS=''
 +'.ny-ov{position:fixed;inset:0;z-index:2147483000;overflow:hidden;opacity:0;cursor:pointer;background:radial-gradient(ellipse at 50% 55%,rgba(40,80,60,.9),rgba(5,16,11,.94));-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);font-family:"Mochiy Pop One","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;-webkit-user-select:none;user-select:none}'
@@ -33,6 +42,7 @@ var CSS=''
 function play(o){
  var doc=o.doc||document,win=doc.defaultView||window,f=o.fortune,done=o.done||function(){};
  var no=NOS[Math.floor(Math.random()*NOS.length)];
+ try{localStorage.setItem(KEY,today()+'|'+no)}catch(e){}
  try{if(win.matchMedia&&win.matchMedia('(prefers-reduced-motion: reduce)').matches){done(no);return}}catch(e){}
  if(!doc.getElementById('ny-css')){var st=doc.createElement('style');st.id='ny-css';st.textContent=CSS;doc.head.appendChild(st);
   var ln=doc.createElement('link');ln.rel='stylesheet';ln.href='https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap&text='+encodeURIComponent('今日のおみくじニャンコどれにしようかな！？これニャ');doc.head.appendChild(ln)}
@@ -95,5 +105,5 @@ function play(o){
   end();
  }catch(e){end()}})();
 }
-window.NyanMikuji={play:play,NOS:NOS,BASE:BASE,SHOP:SHOP};
+window.NyanMikuji={play:play,lucky:lucky,NOS:NOS,IDS:IDS,BASE:BASE,SHOP:SHOP};
 })();
