@@ -1,4 +1,4 @@
-/* ねこのて「今日のおみくじニャンコ」演出 v2（2026-10-11：ラッキーナンバーとグッズへのリンクを追加）
+/* ねこのて「今日のおみくじニャンコ」演出 v3（2026-10-11：結果の右に猫の絵と「この子のグッズ」）
    使い方: NyanMikuji.play({fortune:'大吉', doc:parent.document, done:function(no){…}})
    絵は langue de chat のイラスト（parts/nyanko/NN.webp）。どの動きもゆっくり・控えめにする（ユーザー指示）。
    やめ方: 中の部品で NyanMikuji を呼ばなければ、今までどおりすぐ結果が出る。 */
@@ -10,11 +10,25 @@ var SHOP='https://suzuri.jp/langue-de-chat';
 var IDS=[19635531,19635771,19636768,19636894,19641447,19641641,19641656,19641678,19641695,19641738,19641777,19645513,19646112,19646145,19646374,19652534,19674253,19683976,19702742,19791605,19791618,19791628,19791650,19791694,19706862,19724497,19724646,19724688,19724755,19724814,19728062,19728112,19791738,19746054,19746241,19791755,19752636,19752760,19752845,19746096,19746123,19746159,19746198,19747976,19771697,19771725,19752875,19770198,19771759,19791375,19746270];
 var KEY='nekonote_nyanko';
 function today(){var j=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));return j.getFullYear()+'-'+(j.getMonth()+1)+'-'+j.getDate()}
-// 結果の枠に「今日のニャンコ：ラッキーナンバー◯番」とグッズへのリンクを足す（その日に引いた番号があるときだけ）
+// 結果の枠の左に「ラッキーナンバー◯番」を足し、右に今日の猫の絵。絵の下の「今日のニャンコ」は左の「ラッキーナンバー」と同じ高さ、その下に「この子のグッズ」（その日に引いた番号があるときだけ）
 function lucky(mk){try{var v=(localStorage.getItem(KEY)||'').split('|');if(v[0]!==today()||!mk||mk.querySelector('.ny-lk'))return;var no=+v[1],i=NOS.indexOf(no);if(i<0)return;
- var d=mk.ownerDocument.createElement('div');d.className='ny-lk';d.style.marginTop='2px';
- d.innerHTML='今日のニャンコ：ラッキーナンバー<b style="color:#f5c542;font-size:1.15em">'+no+'</b>番 <a href="'+SHOP+'/designs/'+IDS[i]+'" target="_blank" rel="noopener">この子のグッズ🐾</a>';
- var sm=mk.querySelector('.sm');sm?mk.insertBefore(d,sm):mk.appendChild(d)}catch(e){}}
+ var doc=mk.ownerDocument,win=doc.defaultView,L=doc.createElement('div'),d=doc.createElement('div'),Rt=doc.createElement('a');
+ while(mk.firstChild)L.appendChild(mk.firstChild);L.style.cssText='flex:0 1 auto;min-width:0;word-break:keep-all;overflow-wrap:anywhere';var T=mk.parentNode&&mk.parentNode.querySelector('.t');
+ d.className='ny-lk';d.innerHTML='ラッキーナンバー<b style="color:#f5c542;font-size:1.15em">'+no+'</b>番';
+ var sm=L.querySelector('.sm');sm?L.insertBefore(d,sm):L.appendChild(d);
+ Rt.href=SHOP+'/designs/'+IDS[i];Rt.target='_blank';Rt.rel='noopener';Rt.title='この子のグッズを見る（SUZURI）';
+ Rt.style.cssText='flex:1 1 0;display:flex;flex-direction:column;align-items:center;color:inherit;text-decoration:none';
+ Rt.innerHTML='<img alt="今日のニャンコ '+no+'番" src="'+BASE+(no<10?'0':'')+no+'.webp" style="display:block;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))">'
+  +'<span style="white-space:nowrap;display:flex;align-items:center">今日のニャンコ</span>'
+  +'<span style="white-space:nowrap;color:#f5c542;font-size:11px;text-decoration:underline">この子のグッズ🐾</span>';
+ mk.style.cssText+=';display:flex;align-items:flex-start;gap:14px';mk.appendChild(L);mk.appendChild(Rt);
+ var im=Rt.querySelector('img'),c1=Rt.children[1],c2=Rt.children[2];
+ // 絵の大きさはいつも同じ（文字の大きさに合わせた 7em）。文が長いときは大きさを変えず、位置だけが右へ寄る（ユーザー方針：見慣れたものの大きさは変えない）
+ // 絵の下端を「ラッキーナンバー」の行の上にそろえ、「今日のニャンコ」はその行と同じ高さ
+ function size(){var t=L.getBoundingClientRect().top,r=d.getBoundingClientRect(),av=Math.round(r.top-t),h=Math.round(parseFloat(win.getComputedStyle(mk).fontSize)*7);
+  im.style.width=im.style.height=h+'px';im.style.marginTop=(av-h)+'px';Rt.style.minWidth=h+'px';
+  c1.style.height=Math.round(r.height)+'px';if(sm)c2.style.lineHeight=Math.round(sm.getBoundingClientRect().height)+'px'}
+ size();if(win.ResizeObserver)new win.ResizeObserver(size).observe(L)}catch(e){}}
 var EASE='cubic-bezier(.33,.1,.25,1)';
 var CSS=''
 +'.ny-ov{position:fixed;inset:0;z-index:2147483000;overflow:hidden;opacity:0;cursor:pointer;background:radial-gradient(ellipse at 50% 55%,rgba(40,80,60,.9),rgba(5,16,11,.94));-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);font-family:"Mochiy Pop One","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;-webkit-user-select:none;user-select:none}'
