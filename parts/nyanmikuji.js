@@ -1,4 +1,4 @@
-/* ねこのて「今日のおみくじニャンコ」演出 v3（2026-10-11：結果の右に猫の絵と「この子のグッズ」）
+/* ねこのて「今日のおみくじニャンコ」演出 v4（2026-10-11：「また明日も来てね」の肉球をラッキーカラーに）
    使い方: NyanMikuji.play({fortune:'大吉', doc:parent.document, done:function(no){…}})
    絵は langue de chat のイラスト（parts/nyanko/NN.webp）。どの動きもゆっくり・控えめにする（ユーザー指示）。
    やめ方: 中の部品で NyanMikuji を呼ばなければ、今までどおりすぐ結果が出る。 */
@@ -11,7 +11,11 @@ var IDS=[19635531,19635771,19636768,19636894,19641447,19641641,19641656,19641678
 var KEY='nekonote_nyanko';
 function today(){var j=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));return j.getFullYear()+'-'+(j.getMonth()+1)+'-'+j.getDate()}
 // 結果の枠の左に「ラッキーナンバー◯番」を足し、右に今日の猫の絵。絵の下の「今日のニャンコ」は左の「ラッキーナンバー」と同じ高さ、その下に「この子のグッズ」（その日に引いた番号があるときだけ）
-function lucky(mk){try{var v=(localStorage.getItem(KEY)||'').split('|');if(v[0]!==today()||!mk||mk.querySelector('.ny-lk'))return;var no=+v[1],i=NOS.indexOf(no);if(i<0)return;
+// 「また明日も来てね🐾」の肉球を、その日のラッキーカラーで染める（気づいた人だけがわかる小さな仕掛け）。色が取れなければ文字と同じ白。濃い色は緑の上で見えるよう、ふちをうっすら明るく
+function tint(mk){try{var sm=mk&&mk.querySelector('.sm');if(!sm||sm.querySelector('.ny-paw'))return;var sw=mk.querySelector('.sw'),c=sw?sw.style.background||sw.style.backgroundColor:'',col=c||'#f2f2f2';
+ var m=String(col).match(/\d+/g),dark=m&&m.length>=3&&(+m[0]*.3+ +m[1]*.59+ +m[2]*.11)<70;
+ sm.innerHTML=sm.innerHTML.replace('🐾','<span class="ny-paw" title="今日のラッキーカラー" style="display:inline-block;color:transparent;text-shadow:0 0 0 '+col+(dark?';filter:drop-shadow(0 0 1px rgba(255,255,255,.8))':'')+'">🐾</span>')}catch(e){}}
+function lucky(mk){tint(mk);try{var v=(localStorage.getItem(KEY)||'').split('|');if(v[0]!==today()||!mk||mk.querySelector('.ny-lk'))return;var no=+v[1],i=NOS.indexOf(no);if(i<0)return;
  var doc=mk.ownerDocument,win=doc.defaultView,L=doc.createElement('div'),d=doc.createElement('div'),Rt=doc.createElement('a');
  while(mk.firstChild)L.appendChild(mk.firstChild);L.style.cssText='flex:0 1 auto;min-width:0;word-break:keep-all;overflow-wrap:anywhere';var T=mk.parentNode&&mk.parentNode.querySelector('.t');
  d.className='ny-lk';d.innerHTML='ラッキーナンバー<b style="color:#f5c542;font-size:1.15em">'+no+'</b>番';
@@ -119,5 +123,5 @@ function play(o){
   end();
  }catch(e){end()}})();
 }
-window.NyanMikuji={play:play,lucky:lucky,NOS:NOS,IDS:IDS,BASE:BASE,SHOP:SHOP};
+window.NyanMikuji={play:play,lucky:lucky,tint:tint,NOS:NOS,IDS:IDS,BASE:BASE,SHOP:SHOP};
 })();
