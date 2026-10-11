@@ -20,7 +20,7 @@ function lucky(mk){try{var v=(localStorage.getItem(KEY)||'').split('|');if(v[0]!
  Rt.style.cssText='flex:1 1 0;display:flex;flex-direction:column;align-items:center;color:inherit;text-decoration:none';
  Rt.innerHTML='<img alt="今日のニャンコ '+no+'番" src="'+BASE+(no<10?'0':'')+no+'.webp" style="display:block;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))">'
   +'<span style="white-space:nowrap;display:flex;align-items:center">今日のニャンコ</span>'
-  +'<span style="white-space:nowrap;color:#f5c542;font-size:11px;text-decoration:underline">この子のグッズ🐾</span>';
+  +'<span style="white-space:nowrap;color:#f5c542;font-size:11px;text-decoration:underline">この子のグッズ<span style="display:inline-block;color:transparent;text-shadow:0 0 0 #f5c542">🐾</span></span>';
  mk.style.cssText+=';display:flex;align-items:flex-start;gap:14px';mk.appendChild(L);mk.appendChild(Rt);
  var im=Rt.querySelector('img'),c1=Rt.children[1],c2=Rt.children[2];
  // 絵の大きさはいつも同じ（文字の大きさに合わせた 7em）。文が長いときは大きさを変えず、位置だけが右へ寄る（ユーザー方針：見慣れたものの大きさは変えない）
