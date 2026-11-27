@@ -5,7 +5,7 @@ var jp=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
 var M=jp.getMonth()+1,D=jp.getDate(),page=M+'月'+D+'日',Y=jp.getFullYear();
 var API='https://ja.wikipedia.org/w/api.php?format=json&origin=*&page='+encodeURIComponent(page);
 var pageUrl='https://ja.wikipedia.org/wiki/'+encodeURIComponent(page);
-var NP='https://raw.githubusercontent.com/6ntbryc57c-ctrl/nekonote-photos/main/parts/nophoto.png';
+var NP='https://raw.githubusercontent.com/6ntbryc57c-ctrl/nekonote-photos/main/parts/'+(document.documentElement.classList.contains('nk-k-noimg-2')?'nophoto_v2.png':'nophoto.png')/* 2026-11-27 no.212 父ちゃん（写真9）「もっと可愛い猫にして…sorry! no image」：スイッチ noimg-2 の時だけ新しい絵 */;
 var kt=document.getElementById('kt'),kb=document.getElementById('kbody');
 if(!kt||!kb)return;
 kt.textContent='今日はなんの日？（'+page+'）';
